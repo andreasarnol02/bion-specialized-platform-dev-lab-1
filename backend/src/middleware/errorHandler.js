@@ -14,6 +14,16 @@ const errorHandler = (error, req, res, next) => {
     message = "Data dengan nilai yang sama sudah ada";
   }
 
+  if (error.name === "JsonWebTokenError") {
+    statusCode = 401;
+    message = "Sesi tidak valid, silakan login kembali";
+  }
+
+  if (error.name === "TokenExpiredError") {
+    statusCode = 401;
+    message = "Sesi telah berakhir, silakan login kembali";
+  }
+
   res.status(statusCode).json({
     success: false,
     message,

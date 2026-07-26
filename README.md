@@ -1,12 +1,21 @@
 # Toko Arnol - Toko Web Online
 
-Aplikasi web toko online full-stack untuk Tugas Personal Lab ke-1 (TP1) Week 6 mata kuliah Specialized Platform Development.
+Aplikasi web toko online full-stack untuk Tugas Personal Lab mata kuliah Specialized Platform Development. TP1 (Week 6) membangun katalog produk dan REST API; TP2 (Week 8) menambahkan autentikasi JWT, deployment, dan monitoring.
 
-Bagian depan situs berfungsi seperti toko online pada umumnya: pengunjung dapat melihat katalog, memfilter berdasarkan kategori, mencari, mengurutkan, dan membuka detail produk. Pengelolaan produk (tambah, ubah, hapus) dilakukan lewat halaman admin yang terpisah.
+Bagian depan situs berfungsi seperti toko online pada umumnya: pengunjung dapat melihat katalog, memfilter berdasarkan kategori, mencari, mengurutkan, dan membuka detail produk. Pengelolaan produk (tambah, ubah, hapus) dilakukan lewat halaman admin yang dilindungi login dan hanya bisa diakses akun dengan role `admin`.
 
 - Frontend: React (Vite) dengan React Router, layout menggunakan CSS Grid dan Flexbox
 - Backend: REST API dengan Node.js + Express
 - Database: MongoDB (Mongoose)
+- Autentikasi: JWT, password di-hash dengan bcrypt, token disimpan di `localStorage`
+- Monitoring: Google Analytics 4
+
+## Link Deployment
+
+| Bagian | Link |
+| --- | --- |
+| Frontend (Vercel) | _isi setelah deploy_ |
+| Backend (Render) | _isi setelah deploy_ |
 
 ## Halaman
 
@@ -27,29 +36,49 @@ Bagian depan situs berfungsi seperti toko online pada umumnya: pengunjung dapat 
 | `/admin/new` | Tambah Produk | Membuat produk baru |
 | `/admin/:id/edit` | Ubah Produk | Mengubah produk yang sudah ada |
 
-Catatan: pada aplikasi produksi, route admin seharusnya dilindungi autentikasi. Autentikasi berada di luar cakupan tugas ini, jadi halaman admin dibiarkan terbuka.
+Ketiga route admin dilindungi `ProtectedRoute` dan hanya bisa diakses akun dengan role `admin`. Pengunjung yang belum masuk diarahkan ke `/login`; pengguna biasa yang sudah masuk diarahkan ke beranda.
+
+### Akun
+
+| Route | Halaman | Keterangan |
+| --- | --- | --- |
+| `/login` | Masuk | Login dengan email dan password |
+| `/register` | Daftar | Membuat akun baru dengan role `user` |
+
+Registrasi selalu membuat akun dengan role `user`; field `role` pada request body diabaikan. Akun admin pertama dibuat lewat `npm run seed:admin`, bukan lewat halaman registrasi.
 
 ## API
 
 Base URL: `http://localhost:5001`
 
-| Method | Endpoint | Keterangan |
-| --- | --- | --- |
-| GET | `/api/products` | Mengambil semua produk |
-| GET | `/api/products/:id` | Mengambil satu produk |
-| POST | `/api/products` | Menambah produk baru |
-| PUT | `/api/products/:id` | Mengubah produk |
-| DELETE | `/api/products/:id` | Menghapus produk |
+| Method | Endpoint | Akses | Keterangan |
+| --- | --- | --- | --- |
+| POST | `/api/auth/register` | Publik | Daftar akun baru, mengembalikan token |
+| POST | `/api/auth/login` | Publik | Masuk, mengembalikan token |
+| GET | `/api/auth/me` | Token | Data akun yang sedang masuk |
+| GET | `/api/products` | Publik | Mengambil semua produk |
+| GET | `/api/products/:id` | Publik | Mengambil satu produk |
+| POST | `/api/products` | Admin | Menambah produk baru |
+| PUT | `/api/products/:id` | Admin | Mengubah produk |
+| DELETE | `/api/products/:id` | Admin | Menghapus produk |
+
+Endpoint bertanda Admin memerlukan header `Authorization: Bearer <token>` dari akun dengan role `admin`. Tanpa token responsnya 401; dengan token pengguna biasa responsnya 403.
 
 Respons memakai bentuk `{ "success": true, "data": ... }`. Jika terjadi kesalahan, respons berbentuk `{ "success": false, "message": "..." }`.
 
 Field produk: `name`, `description`, `price`, `imageUrl`, `category`, `stock`, ditambah timestamp `createdAt` / `updatedAt`.
 
+Field akun: `name`, `email`, `role`. Password di-hash dengan bcrypt dan tidak pernah ikut dalam respons API.
+
+### Rate limit
+
+`/api/auth/login` dibatasi 10 percobaan gagal per IP per 15 menit; login yang berhasil tidak dihitung. `/api/auth/register` dibatasi 20 permintaan per IP per jam. `/api/auth/me` tidak dibatasi karena dipanggil setiap halaman dimuat untuk memvalidasi token.
+
 ## Cara Menjalankan
 
 ### Prasyarat
 
-- Node.js versi 18 atau lebih baru
+- Node.js versi 20 atau lebih baru
 - MongoDB, bisa salah satu dari:
   - MongoDB Community Server lokal (`brew install mongodb-community` di macOS), atau
   - cluster MongoDB Atlas M0 (gratis)
@@ -66,22 +95,39 @@ Atau buat cluster di Atlas lalu salin connection string-nya.
 
 ### 2. Atur environment variable
 
-Backend, buat file `backend/.env`:
+Backend, salin `backend/.env.example` menjadi `backend/.env`:
 
 ```txt
 PORT=5001
 MONGODB_URI=mongodb://localhost:27017/online-store
-CLIENT_URL=http://localhost:5173
+CLIENT_URLS=http://localhost:5173
+JWT_SECRET=ganti-dengan-string-acak-minimal-32-karakter
+JWT_EXPIRES_IN=7d
+ADMIN_NAME=Nama Admin
+ADMIN_EMAIL=admin@tokoarnol.com
+ADMIN_PASSWORD=ganti-password-ini
+```
+
+`CLIENT_URLS` menerima beberapa origin yang dipisah koma, misalnya
+`http://localhost:5173,https://toko-arnol.vercel.app`. Origin di luar daftar ini ditolak CORS.
+
+Untuk `JWT_SECRET`, hasilkan string acak:
+
+```bash
+openssl rand -hex 32
 ```
 
 Jika memakai Atlas, ganti `MONGODB_URI` dengan connection string dari Atlas, contohnya
 `mongodb+srv://user:password@cluster.mongodb.net/online-store`.
 
-Frontend, buat file `frontend/.env`:
+Frontend, salin `frontend/.env.example` menjadi `frontend/.env`:
 
 ```txt
 VITE_API_URL=http://localhost:5001
+VITE_GA_MEASUREMENT_ID=
 ```
+
+`VITE_GA_MEASUREMENT_ID` boleh dikosongkan saat pengembangan lokal. Jika kosong, Google Analytics tidak dimuat sama sekali sehingga data pengembangan tidak mencemari dashboard.
 
 ### 3. Jalankan backend
 
@@ -93,7 +139,18 @@ npm run dev
 
 API berjalan di `http://localhost:5001`. Buka alamat itu di browser, seharusnya muncul pesan status dalam bentuk JSON.
 
-### 4. Jalankan frontend
+### 4. Buat akun admin pertama
+
+Registrasi lewat halaman `/register` selalu menghasilkan role `user`. Akun admin dibuat lewat script, memakai kredensial dari `ADMIN_*` di `backend/.env`:
+
+```bash
+cd backend
+npm run seed:admin
+```
+
+Script ini aman dijalankan berulang: jika email tersebut sudah terdaftar, akunnya dipromosikan menjadi admin.
+
+### 5. Jalankan frontend
 
 Di terminal kedua:
 
@@ -105,33 +162,64 @@ npm run dev
 
 Buka `http://localhost:5173` di browser.
 
-### 5. Tambah data produk
+### 6. Tambah data produk
 
-Database awalnya kosong. Tambahkan produk lewat halaman admin di `http://localhost:5173/admin/new`, atau lewat curl:
+Database awalnya kosong. Masuk sebagai admin, lalu tambahkan produk lewat `http://localhost:5173/admin/new`.
+
+Lewat curl, ambil token dulu karena endpoint ini butuh role admin:
 
 ```bash
+TOKEN=$(curl -s -X POST http://localhost:5001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@tokoarnol.com","password":"password-admin-anda"}' \
+  | sed -nE 's/.*"token":"([^"]+)".*/\1/p')
+
 curl -X POST http://localhost:5001/api/products \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
   -d '{"name":"Kamera Instan","description":"Kamera instan yang langsung mencetak foto.","price":1350000,"imageUrl":"https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=800&q=80","category":"Elektronik","stock":12}'
 ```
+
+## Pengujian
+
+`backend/smoke-test.sh` menguji alur autentikasi dan otorisasi dari ujung ke ujung: baca publik, tulis tanpa token ditolak, registrasi menghasilkan role `user`, tulis sebagai pengguna biasa ditolak, login admin, tulis sebagai admin berhasil, lalu hapus data ujinya.
+
+```bash
+cd backend
+./smoke-test.sh                                   # lokal
+./smoke-test.sh https://toko-arnol-api.onrender.com   # setelah deploy
+```
+
+Script keluar dengan kode 0 jika ketujuh pemeriksaan lolos.
 
 ## Struktur Project
 
 ```txt
 TP1/
   README.md
+  render.yaml                    Blueprint deployment Render (harus di root repo)
+  docs/
+    TP2_Dokumentasi.md
   frontend/
     package.json
     index.html
     vite.config.js
+    vercel.json                  rewrite SPA agar refresh di /admin tidak 404
     src/
       main.jsx
       App.jsx
       api/
+        client.js                apiFetch: base URL, header Bearer, penanganan 401
+        auth.js
         products.js
+      context/
+        AuthContext.jsx          status loading | authenticated | guest
+      hooks/
+        useAnalytics.js          page_view setiap perpindahan route
       components/
         Navbar.jsx
         Footer.jsx
+        ProtectedRoute.jsx
         ProductCard.jsx
         ProductForm.jsx
         StockBadge.jsx
@@ -141,25 +229,139 @@ TP1/
         Home.jsx
         ProductList.jsx
         ProductDetail.jsx
+        Login.jsx
+        Register.jsx
         AdminProducts.jsx
         CreateProduct.jsx
         EditProduct.jsx
       styles/
         global.css
       utils/
+        analytics.js
         format.js
   backend/
     package.json
     server.js
+    smoke-test.sh                pengujian alur auth dari ujung ke ujung
     src/
       config/
         db.js
       models/
         Product.js
+        User.js
       controllers/
         productController.js
+        authController.js
       routes/
         productRoutes.js
+        authRoutes.js
       middleware/
         errorHandler.js
+        auth.js                  protect + requireAdmin
+        rateLimiter.js
+      utils/
+        generateToken.js
+      scripts/
+        seedAdmin.js
 ```
+
+## Deployment
+
+Backend ke Render, frontend ke Vercel, database ke MongoDB Atlas. Ketiganya memakai paket gratis.
+
+Urutannya penting karena kedua layanan saling merujuk. Ikuti dari atas ke bawah.
+
+### 1. MongoDB Atlas
+
+1. Buat cluster M0 gratis di <https://cloud.mongodb.com>.
+2. **Database Access** → tambah user, catat username dan password.
+3. **Network Access** → Add IP Address → **Allow access from anywhere** (`0.0.0.0/0`).
+4. **Connect** → Drivers → salin connection string, ganti `<password>`, lalu tambahkan nama database:
+   `mongodb+srv://user:pass@cluster.mongodb.net/online-store?retryWrites=true&w=majority`
+
+`0.0.0.0/0` diperlukan karena paket gratis Render tidak memberi IP keluar yang tetap, jadi tidak ada alamat yang bisa didaftarkan. Koneksinya tetap dilindungi kredensial dan TLS.
+
+### 2. Push ke GitHub
+
+Kedua layanan melakukan deploy dari repository Git.
+
+```bash
+git push origin main
+```
+
+Pastikan file `.env` tidak ikut terkirim:
+
+```bash
+git ls-files | grep -E "\.env$" || echo "aman, tidak ada .env yang dilacak"
+```
+
+Jika ada `.env` yang muncul, hapus dengan `git rm --cached` **dan ganti semua kredensial di dalamnya** — secret yang sudah terkirim tetap ada di riwayat commit meski filenya dihapus.
+
+### 3. Deploy backend ke Render
+
+1. <https://dashboard.render.com> → New → Blueprint → pilih repository ini. Render membaca `render.yaml` di root.
+2. Isi nilai yang diminta: `MONGODB_URI`, `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`.
+3. `CLIENT_URLS` diisi `http://localhost:5173` dulu. URL Vercel belum ada.
+4. Deploy, lalu buka URL service-nya. Seharusnya muncul `{"success":true,"message":"API Toko Arnol berjalan"}`.
+
+Catat URL-nya, bentuknya `https://toko-arnol-api.onrender.com`.
+
+`JWT_SECRET` tidak perlu diisi: `render.yaml` memakai `generateValue: true` sehingga Render membuat secret acak sendiri.
+
+### 4. Buat akun admin di database production
+
+Render dashboard → service → tab **Shell**:
+
+```bash
+npm run seed:admin
+```
+
+Jika service sedang tidur, buka dulu URL-nya supaya bangun.
+
+### 5. Deploy frontend ke Vercel
+
+1. <https://vercel.com/new> → import repository yang sama.
+2. **Root Directory** diisi `frontend`.
+3. Environment Variables:
+   - `VITE_API_URL` = URL Render, **tanpa garis miring di akhir**
+   - `VITE_GA_MEASUREMENT_ID` = ID GA4 (`G-XXXXXXXXXX`)
+4. Deploy, catat URL-nya.
+
+Garis miring di akhir `VITE_API_URL` menghasilkan path seperti `https://api.onrender.com//api/products` yang berujung 404.
+
+### 6. Kembalikan URL Vercel ke Render
+
+Render → Environment → ubah `CLIENT_URLS`:
+
+```txt
+https://toko-arnol.vercel.app,http://localhost:5173
+```
+
+Simpan, Render otomatis deploy ulang.
+
+**Langkah ini yang paling sering terlewat.** Gejalanya error CORS di console browser padahal API menjawab normal lewat curl. Frontend-nya tidak bermasalah; backend hanya belum mengenali origin tersebut.
+
+### 7. Atur data stream GA4
+
+GA4 → Admin → Data Streams → ubah URL stream ke domain Vercel, atau tambahkan stream baru untuk domain itu. Stream yang hanya diatur untuk `localhost` tidak merekam trafik production.
+
+### 8. Verifikasi
+
+```bash
+cd backend
+ADMIN_EMAIL=email-admin-anda ADMIN_PASSWORD=password-anda \
+  ./smoke-test.sh https://toko-arnol-api.onrender.com
+```
+
+Harus muncul `Passed: 7   Failed: 0`. Permintaan pertama bisa memakan waktu sekitar 50 detik karena instance gratis Render tidur setelah kurang lebih 15 menit tidak aktif.
+
+Lalu lewat browser di URL Vercel:
+
+| Pemeriksaan | Harapan |
+| --- | --- |
+| Beranda menampilkan produk | Data datang dari API Render |
+| Buka detail produk lalu refresh | Tetap di halaman itu, tidak 404 (bukti rewrite SPA bekerja) |
+| Buka `/admin` tanpa login | Diarahkan ke `/login` |
+| Login sebagai admin | Masuk ke `/admin`, bisa menambah produk |
+| Console browser | Tidak ada error CORS |
+| GA4 Realtime | Kunjungan Anda muncul |

@@ -5,6 +5,7 @@ import { getProductById, updateProduct } from "../api/products";
 import ErrorMessage from "../components/ErrorMessage";
 import Loading from "../components/Loading";
 import ProductForm from "../components/ProductForm";
+import { trackEvent } from "../utils/analytics";
 
 function EditProduct() {
   const { id } = useParams();
@@ -35,6 +36,7 @@ function EditProduct() {
 
     try {
       await updateProduct(id, productData);
+      trackEvent("admin_product_update", { item_id: id });
       navigate("/admin");
     } catch (err) {
       setError(err.message);

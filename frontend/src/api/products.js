@@ -1,54 +1,27 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-const PRODUCT_ENDPOINT = `${API_URL}/api/products`;
+import { apiFetch } from "./client";
 
-const parseResponse = async (response) => {
-  const result = await response.json();
+const PRODUCT_PATH = "/api/products";
 
-  if (!response.ok) {
-    throw new Error(result.message || "Request failed");
-  }
+export const getProducts = async () => apiFetch(PRODUCT_PATH);
 
-  return result.data;
-};
+export const getProductById = async (id) => apiFetch(`${PRODUCT_PATH}/${id}`);
 
-export const getProducts = async () => {
-  const response = await fetch(PRODUCT_ENDPOINT);
-  return parseResponse(response);
-};
-
-export const getProductById = async (id) => {
-  const response = await fetch(`${PRODUCT_ENDPOINT}/${id}`);
-  return parseResponse(response);
-};
-
-export const createProduct = async (productData) => {
-  const response = await fetch(PRODUCT_ENDPOINT, {
+export const createProduct = async (productData) =>
+  apiFetch(PRODUCT_PATH, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(productData),
+    body: productData,
+    auth: true,
   });
 
-  return parseResponse(response);
-};
-
-export const updateProduct = async (id, productData) => {
-  const response = await fetch(`${PRODUCT_ENDPOINT}/${id}`, {
+export const updateProduct = async (id, productData) =>
+  apiFetch(`${PRODUCT_PATH}/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(productData),
+    body: productData,
+    auth: true,
   });
 
-  return parseResponse(response);
-};
-
-export const deleteProduct = async (id) => {
-  const response = await fetch(`${PRODUCT_ENDPOINT}/${id}`, {
+export const deleteProduct = async (id) =>
+  apiFetch(`${PRODUCT_PATH}/${id}`, {
     method: "DELETE",
+    auth: true,
   });
-
-  return parseResponse(response);
-};

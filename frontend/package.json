@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "React frontend for the online store app",
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

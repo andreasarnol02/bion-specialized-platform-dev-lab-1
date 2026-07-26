@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { createProduct } from "../api/products";
 import ErrorMessage from "../components/ErrorMessage";
 import ProductForm from "../components/ProductForm";
+import { trackEvent } from "../utils/analytics";
 
 function CreateProduct() {
   const navigate = useNavigate();
@@ -15,7 +16,8 @@ function CreateProduct() {
     setError("");
 
     try {
-      await createProduct(productData);
+      const created = await createProduct(productData);
+      trackEvent("admin_product_create", { item_id: created._id });
       navigate("/admin");
     } catch (err) {
       setError(err.message);

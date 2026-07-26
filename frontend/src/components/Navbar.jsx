@@ -1,6 +1,16 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+
+import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
+  const { user, status, isAdmin, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/", { replace: true });
+  };
+
   return (
     <header className="site-header">
       <a className="skip-link" href="#main-content">
@@ -36,12 +46,41 @@ function Navbar() {
           >
             Produk
           </NavLink>
-          <NavLink
-            to="/admin"
-            className={({ isActive }) => (isActive ? "active" : "")}
-          >
-            Admin
-          </NavLink>
+
+          {isAdmin && (
+            <NavLink
+              to="/admin"
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              Admin
+            </NavLink>
+          )}
+
+          {/* Neither branch renders while status is "loading". Showing nothing
+              for that moment beats flashing "Masuk" and swapping it for the
+              user's name once the stored token has been validated. */}
+          {status === "authenticated" ? (
+            <div className="nav-user">
+              <span className="nav-user-name">Halo, {user.name}</span>
+              <button className="button ghost" type="button" onClick={handleLogout}>
+                Keluar
+              </button>
+            </div>
+          ) : (
+            status === "guest" && (
+              <>
+                <NavLink
+                  to="/login"
+                  className={({ isActive }) => (isActive ? "active" : "")}
+                >
+                  Masuk
+                </NavLink>
+                <NavLink to="/register" className="nav-cta">
+                  Daftar
+                </NavLink>
+              </>
+            )
+          )}
         </div>
       </nav>
     </header>

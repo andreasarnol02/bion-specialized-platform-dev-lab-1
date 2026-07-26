@@ -5,6 +5,7 @@ import { deleteProduct, getProducts } from "../api/products";
 import ErrorMessage from "../components/ErrorMessage";
 import Loading from "../components/Loading";
 import StockBadge from "../components/StockBadge";
+import { trackEvent } from "../utils/analytics";
 import { formatCurrency } from "../utils/format";
 
 function AdminProducts() {
@@ -40,6 +41,7 @@ function AdminProducts() {
 
     try {
       await deleteProduct(product._id);
+      trackEvent("admin_product_delete", { item_id: product._id });
       setProducts((current) =>
         current.filter((item) => item._id !== product._id)
       );
