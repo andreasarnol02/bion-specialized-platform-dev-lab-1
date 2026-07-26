@@ -12,10 +12,47 @@ Bagian depan situs berfungsi seperti toko online pada umumnya: pengunjung dapat 
 
 ## Link Deployment
 
-| Bagian | Link |
+| Bagian | Link | Layanan |
+| --- | --- | --- |
+| Toko (frontend) | https://toko-online.andreasarnol.com | Vercel |
+| API (backend) | https://api-toko-online.andreasarnol.com | Render |
+| Database | cluster `BION-PLATFORM-DEV`, database `online-store` | MongoDB Atlas |
+| Monitoring | properti `Toko Arnol` di Google Analytics 4 | GA4 |
+
+Backend memakai paket gratis Render yang tidur setelah kurang lebih 15 menit tidak aktif. **Permintaan pertama setelah tidur memerlukan waktu sekitar 50 detik.** Buka dulu link API di atas dan tunggu sampai muncul respons JSON, baru buka tokonya, supaya halaman depan tidak terlihat kosong saat menunggu.
+
+## Cara Mencoba Aplikasi
+
+### Sebagai pengunjung
+
+Buka https://toko-online.andreasarnol.com. Katalog, filter kategori, pencarian, pengurutan, dan halaman detail produk semuanya bisa diakses tanpa login.
+
+### Sebagai pengguna terdaftar
+
+Daftar sendiri lewat https://toko-online.andreasarnol.com/register. Akun baru selalu dibuat dengan role `user`.
+
+Setelah masuk, navbar menampilkan nama dan tombol keluar. Menu Admin tidak muncul, dan membuka `/admin` langsung lewat address bar akan dialihkan ke beranda. Ini bisa dicoba untuk melihat proteksi route bekerja.
+
+### Sebagai admin
+
+Kredensial akun admin **tidak disimpan di repository ini**, melainkan pada dokumen `TP2_Dokumentasi` yang dikumpulkan.
+
+Alasannya: repository ini publik, sementara aplikasinya sudah berjalan dan dapat diakses siapa saja. Menuliskan kredensial admin di sini berarti siapa pun bisa masuk dan menghapus seluruh katalog. Akun admin juga tidak bisa dibuat lewat halaman registrasi, karena `POST /api/auth/register` selalu menetapkan role `user` dan mengabaikan field `role` pada request body.
+
+Untuk menjalankan versi sendiri lengkap dengan akun admin, ikuti bagian [Cara Menjalankan](#cara-menjalankan) di bawah.
+
+## Dokumen Perancangan
+
+Sebelum menulis kode, pengerjaan TP2 dimulai dari dua dokumen yang keduanya ikut disimpan di repository ini.
+
+| Dokumen | Isi |
 | --- | --- |
-| Frontend (Vercel) | https://toko-online.andreasarnol.com |
-| Backend (Render) | https://api-toko-online.andreasarnol.com |
+| [`docs/superpowers/specs/2026-07-26-tp2-auth-deployment-monitoring-design.md`](docs/superpowers/specs/2026-07-26-tp2-auth-deployment-monitoring-design.md) | Hasil brainstorming: cakupan pekerjaan, keputusan desain beserta alasannya, arsitektur, kontrak API, dan penanganan error |
+| [`docs/superpowers/plans/2026-07-26-tp2-auth-deployment-monitoring.md`](docs/superpowers/plans/2026-07-26-tp2-auth-deployment-monitoring.md) | Rencana implementasi: 13 task, masing-masing dengan langkah verifikasi dan commit tersendiri |
+
+Dokumen desain memuat alasan di balik pilihan yang diambil, misalnya mengapa memakai `bcryptjs` dan bukan `bcrypt`, mengapa status autentikasi di frontend memakai tiga nilai dan bukan boolean, serta mengapa registrasi tidak boleh menghasilkan role `admin`. Alasan-alasan itu kemudian dirangkum ulang pada `docs/TP2_Dokumentasi.md`.
+
+Kedua dokumen disusun dengan bantuan AI sebagai alat bantu perancangan, lalu ditinjau dan disetujui sebelum implementasi dijalankan. Keduanya sengaja tidak dihapus agar proses pengerjaannya bisa ditelusuri.
 
 ## Halaman
 
