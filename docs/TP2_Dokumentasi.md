@@ -11,9 +11,11 @@
 
 | Bagian | Link |
 | --- | --- |
-| Frontend (Vercel) | «isi URL» |
-| Backend (Render) | «isi URL» |
+| Frontend (Vercel) | https://toko-online.andreasarnol.com |
+| Backend (Render) | https://api-toko-online.andreasarnol.com |
 | Repository GitHub | https://github.com/andreasarnol02/bion-specialized-platform-dev-lab-1 |
+
+Kedua domain memakai subdomain dari `andreasarnol.com` dengan sertifikat TLS yang diterbitkan otomatis oleh Vercel dan Render.
 
 Akun demo untuk penilaian:
 
@@ -136,11 +138,15 @@ Payload token hanya memuat `id` dan `role`; tidak ada password maupun email di d
 
 ### 4.1 Arsitektur
 
-| Komponen | Layanan | Paket |
-| --- | --- | --- |
-| Frontend | Vercel | Hobby |
-| Backend | Render | Free |
-| Database | MongoDB Atlas | M0 |
+| Komponen | Layanan | Paket | Domain |
+| --- | --- | --- | --- |
+| Frontend | Vercel | Hobby | `toko-online.andreasarnol.com` |
+| Backend | Render | Free | `api-toko-online.andreasarnol.com` |
+| Database | MongoDB Atlas | M0 | — |
+
+Kedua domain diarahkan lewat record CNAME di Cloudflare dengan proxy dimatikan (DNS only), sehingga Vercel dan Render menerbitkan sertifikat Let's Encrypt masing-masing. Dengan proxy menyala, permintaan validasi ACME dijawab lebih dulu oleh edge Cloudflare sehingga sertifikat tidak pernah terbit, dan mode SSL "Flexible" berpotensi menimbulkan redirect berulang.
+
+Menentukan kedua domain sejak awal juga menghilangkan saling-tunggu antara kedua layanan: tanpa custom domain, `CLIENT_URLS` menunggu URL Vercel sementara `VITE_API_URL` menunggu URL Render.
 
 Seluruh konfigurasi dikendalikan environment variable, sehingga kode yang sama berjalan di lokal maupun production tanpa perubahan.
 
