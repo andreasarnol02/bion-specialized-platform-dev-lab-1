@@ -249,8 +249,6 @@ Domain `toko-online.andreasarnol.com` terpasang, sumbernya branch `main`, dan pr
 
 Cluster `BION-PLATFORM-DEV` memakai paket gratis M0 di region AWS Singapore, region yang sama dengan lokasi pengguna sehingga jarak tempuh permintaan lebih pendek.
 
-> «SCREENSHOT: daftar Environment Variables di Render»
-
 **Basis data production terisi**
 
 ![Koleksi users dan products di Atlas](screenshots/13-atlas-koleksi-terisi.png)
@@ -316,10 +314,27 @@ Tidak ada event yang membawa nama, email, atau token. Ketentuan GA4 melarang dat
 
 ![GA4 Realtime](screenshots/17-ga4-realtime.png)
 
-Properti `Toko Arnol` merekam kunjungan yang sedang berlangsung. Panel "Views by Page title and screen name" memperlihatkan 49 tampilan halaman, jauh lebih banyak daripada jumlah pengguna aktif. Selisih itu memang yang diharapkan pada aplikasi satu halaman: setiap perpindahan route ikut terhitung karena `useAnalytics` mengirim `page_view` secara manual. Tanpa itu, satu sesi hanya akan tercatat satu kali di `/`.
-> «SCREENSHOT: GA4 laporan Events memperlihatkan `login`, `sign_up`, `view_item`»
+Properti `Toko Arnol` merekam kunjungan yang sedang berlangsung.
 
-> «SCREENSHOT: GA4 laporan Pages and screens memperlihatkan beberapa path berbeda»
+**GA4 Realtime pages — path yang tercatat**
+
+![GA4 Realtime pages](screenshots/18-ga4-realtime-pages.png)
+
+Tabel ini adalah bukti paling langsung bahwa pencatatan pageview untuk aplikasi satu halaman berfungsi. Tercatat tujuh path berbeda dari hanya tiga pengguna aktif, dengan total 42 tampilan:
+
+| Path | Tampilan |
+| --- | --- |
+| `/` | 16 |
+| `/products` | 8 |
+| `/products/6a65adbbc181fdb217249ea5` | 6 |
+| `/products/6a65adbbc181fdb217249ea2` | 5 |
+| `/login` | 3 |
+| `/products/6a65adbbc181fdb217249ea3` | 2 |
+| `/register` | 2 |
+
+Angka seperti ini tidak mungkin muncul dari pemasangan GA4 apa adanya. Snippet bawaan hanya mengirim `page_view` sekali, yaitu ketika dokumen dimuat, sedangkan React Router berpindah halaman lewat History API tanpa memuat dokumen baru. Tanpa penanganan khusus, ketiga pengguna itu hanya akan tercatat sebagai tiga tampilan di `/` saja.
+
+Tujuh path yang berbeda muncul karena `useAnalytics` mengirim ulang `page_view` setiap kali `location` berubah.
 
 ---
 
@@ -472,3 +487,13 @@ cd backend && ./smoke-test.sh
 | --- | --- |
 | `render.yaml` | Blueprint deployment Render |
 | `frontend/vercel.json` | Rewrite SPA |
+
+---
+
+## 10. Deklarasi Penggunaan AI
+
+Pengerjaan TP2 ini dibantu AI agent (Claude Code) pada tahap perancangan, penulisan kode, dan penyusunan dokumentasi.
+
+Di luar itu dikerjakan sendiri: seluruh keputusan desain, pembuatan dan konfigurasi layanan pada MongoDB Atlas, Render, Vercel, Cloudflare, dan Google Analytics, pengisian environment variable, pemasangan custom domain, serta proses deployment. Kode ditinjau sebelum di-commit dan setiap tahap diuji terhadap aplikasi yang berjalan.
+
+Dokumen perancangan pada `docs/superpowers/` sengaja tidak dihapus agar alur pengerjaannya dapat ditelusuri.
