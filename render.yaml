@@ -1,0 +1,40 @@
+# Render Blueprint. Must live at the repository root -- Render only looks for
+# render.yaml there, not inside a subdirectory.
+#
+# Values marked `sync: false` are secrets: Render prompts for them in the
+# dashboard rather than reading them from this file, so nothing sensitive is
+# ever committed.
+
+services:
+  - type: web
+    name: toko-arnol-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    # `npm start` runs `node server.js`. Never `npm run dev` here -- nodemon is
+    # a devDependency and restarts on file changes, which is meaningless on a
+    # read-only deploy.
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: MONGODB_URI
+        sync: false
+      # Render generates a strong random secret. Better than one you invent,
+      # and it never appears in the repository.
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      # Comma-separated. Set this to your Vercel URL after the frontend
+      # deploys -- see step 9 in README.md.
+      - key: CLIENT_URLS
+        sync: false
+      - key: ADMIN_NAME
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
