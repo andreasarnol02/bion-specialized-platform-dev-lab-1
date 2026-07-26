@@ -12,10 +12,34 @@ Bagian depan situs berfungsi seperti toko online pada umumnya: pengunjung dapat 
 
 ## Link Deployment
 
-| Bagian | Link |
-| --- | --- |
-| Frontend (Vercel) | https://toko-online.andreasarnol.com |
-| Backend (Render) | https://api-toko-online.andreasarnol.com |
+| Bagian | Link | Layanan |
+| --- | --- | --- |
+| Toko (frontend) | https://toko-online.andreasarnol.com | Vercel |
+| API (backend) | https://api-toko-online.andreasarnol.com | Render |
+| Database | cluster `BION-PLATFORM-DEV`, database `online-store` | MongoDB Atlas |
+| Monitoring | properti `Toko Arnol` di Google Analytics 4 | GA4 |
+
+Backend memakai paket gratis Render yang tidur setelah kurang lebih 15 menit tidak aktif. **Permintaan pertama setelah tidur memerlukan waktu sekitar 50 detik.** Buka dulu link API di atas dan tunggu sampai muncul respons JSON, baru buka tokonya, supaya halaman depan tidak terlihat kosong saat menunggu.
+
+## Cara Mencoba Aplikasi
+
+### Sebagai pengunjung
+
+Buka https://toko-online.andreasarnol.com. Katalog, filter kategori, pencarian, pengurutan, dan halaman detail produk semuanya bisa diakses tanpa login.
+
+### Sebagai pengguna terdaftar
+
+Daftar sendiri lewat https://toko-online.andreasarnol.com/register. Akun baru selalu dibuat dengan role `user`.
+
+Setelah masuk, navbar menampilkan nama dan tombol keluar. Menu Admin tidak muncul, dan membuka `/admin` langsung lewat address bar akan dialihkan ke beranda. Ini bisa dicoba untuk melihat proteksi route bekerja.
+
+### Sebagai admin
+
+Kredensial akun admin **tidak disimpan di repository ini**, melainkan pada dokumen `TP2_Dokumentasi` yang dikumpulkan.
+
+Alasannya: repository ini publik, sementara aplikasinya sudah berjalan dan dapat diakses siapa saja. Menuliskan kredensial admin di sini berarti siapa pun bisa masuk dan menghapus seluruh katalog. Akun admin juga tidak bisa dibuat lewat halaman registrasi, karena `POST /api/auth/register` selalu menetapkan role `user` dan mengabaikan field `role` pada request body.
+
+Untuk menjalankan versi sendiri lengkap dengan akun admin, ikuti bagian [Cara Menjalankan](#cara-menjalankan) di bawah.
 
 ## Halaman
 
