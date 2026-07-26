@@ -286,11 +286,20 @@ Ikuti langkah berikut dari atas ke bawah.
 
 1. Buat cluster M0 gratis di <https://cloud.mongodb.com>.
 2. **Database Access** → tambah user, catat username dan password.
-3. **Network Access** → Add IP Address → **Allow access from anywhere** (`0.0.0.0/0`).
+3. **Network Access** → Add IP Address. Masukkan alamat keluar Render, satu per baris:
+
+   | CIDR | Keterangan |
+   | --- | --- |
+   | `74.220.52.0/24` | IP keluar Render |
+   | `74.220.60.0/24` | IP keluar Render |
+
+   Tambahkan juga IP komputer sendiri lewat tombol **Add Current IP Address**, karena script seed dijalankan dari lokal (lihat langkah 5).
+
+   Daftar IP keluar Render bisa berubah dan ditampilkan pada halaman service, bagian **Connect → Outbound**. Pakai nilai yang tertera di sana, bukan yang disalin dari dokumen ini.
 4. **Connect** → Drivers → salin connection string, ganti `<password>`, lalu tambahkan nama database:
    `mongodb+srv://user:pass@cluster.mongodb.net/online-store?retryWrites=true&w=majority`
 
-`0.0.0.0/0` diperlukan karena paket gratis Render tidak memberi IP keluar yang tetap, jadi tidak ada alamat yang bisa didaftarkan. Koneksinya tetap dilindungi kredensial dan TLS.
+Mendaftarkan dua blok `/24` jauh lebih baik daripada membuka `0.0.0.0/0`. Dengan `0.0.0.0/0`, host mana pun di internet bisa mencoba autentikasi ke cluster; kredensial memang tetap diperlukan, tetapi targetnya jadi terbuka untuk pemindai otomatis. Membatasi ke alamat Render menyisakan batas jaringan sebagai lapisan pertahanan kedua di samping kredensial dan TLS.
 
 ### 2. Push ke GitHub
 
@@ -345,13 +354,20 @@ Tunggu sampai status di Render berubah menjadi terverifikasi, lalu buka `https:/
 
 ### 5. Buat akun admin di database production
 
-Render dashboard → service → tab **Shell**:
+Paket gratis Render tidak menyediakan Shell maupun One-Off Job, jadi script seed dijalankan dari komputer sendiri dengan menunjuk ke Atlas. Script-nya sama, hanya koneksinya berasal dari mesin lokal — karena itu IP komputer perlu didaftarkan di Atlas pada langkah 1.
 
 ```bash
+cd backend
+MONGODB_URI="<connection string Atlas>" \
+ADMIN_NAME="Andreas Arnol" \
+ADMIN_EMAIL="<email admin>" \
+ADMIN_PASSWORD="<password admin>" \
 npm run seed:admin
 ```
 
-Jika service sedang tidur, buka dulu URL-nya supaya bangun.
+Variabel ditulis di depan perintah supaya nilainya hanya berlaku sekali jalan dan tidak menimpa `backend/.env` yang dipakai untuk pengembangan lokal.
+
+Keluarannya `Admin <email> berhasil dibuat`. Aman dijalankan berulang: kalau email tersebut sudah ada, akunnya dipromosikan menjadi admin.
 
 ### 6. Deploy frontend ke Vercel
 

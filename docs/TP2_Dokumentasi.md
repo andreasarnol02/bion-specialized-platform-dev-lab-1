@@ -185,7 +185,7 @@ Permintaan tanpa header `Origin` diizinkan agar curl dan script pengujian tetap 
 
 ### 4.4 Urutan deployment
 
-1. Buat cluster Atlas, atur Network Access ke `0.0.0.0/0`.
+1. Buat cluster Atlas, daftarkan IP keluar Render pada Network Access.
 2. Deploy backend ke Render, `CLIENT_URLS` diisi sementara.
 3. Jalankan `npm run seed:admin` lewat Shell Render.
 4. Deploy frontend ke Vercel dengan `VITE_API_URL` menunjuk ke URL Render.
@@ -194,7 +194,11 @@ Permintaan tanpa header `Origin` diizinkan agar curl dan script pengujian tetap 
 
 Langkah 5 paling sering terlewat, dan gejalanya menyesatkan: error CORS muncul di browser padahal API menjawab normal lewat curl.
 
-Atlas harus menerima `0.0.0.0/0` karena paket gratis Render tidak menyediakan IP keluar tetap, jadi tidak ada alamat yang bisa didaftarkan. Koneksi tetap dilindungi kredensial SRV dan TLS.
+Network Access pada Atlas dibatasi ke blok alamat keluar Render, yaitu `74.220.52.0/24` dan `74.220.60.0/24`, ditambah IP komputer sendiri untuk menjalankan script seed.
+
+Pilihan yang lebih mudah adalah membuka `0.0.0.0/0`, dan itu memang yang direncanakan semula dengan alasan paket gratis Render dianggap tidak punya IP keluar tetap. Anggapan itu keliru: Render menampilkan blok IP keluarnya pada halaman service. Membatasi ke dua blok `/24` berarti hanya 512 alamat yang bisa mencoba terhubung, bukan seluruh internet. Kredensial dan TLS tetap menjadi lapisan pertama, sementara batas jaringan menjadi lapisan kedua.
+
+Daftar IP keluar Render dapat berubah. Kalau suatu saat koneksi ditolak padahal kredensial benar, nilai terbaru bisa dilihat di halaman service Render bagian **Connect → Outbound**.
 
 ### 4.5 Bukti
 
@@ -360,7 +364,8 @@ cd backend && ./smoke-test.sh
 | Kendala | Solusi |
 | --- | --- |
 | Paket gratis Render tidur setelah kurang lebih 15 menit | Permintaan pertama butuh sekitar 50 detik; backend dibuka lebih dulu sebelum demo |
-| Atlas menolak koneksi dari Render | Network Access diatur `0.0.0.0/0` karena Render free tidak punya IP keluar tetap |
+| Atlas menolak koneksi dari Render, deploy gagal dengan `Could not connect to any servers` | Blok IP keluar Render (`74.220.52.0/24`, `74.220.60.0/24`) didaftarkan pada Network Access Atlas, bukan membuka `0.0.0.0/0` |
+| Paket gratis Render tidak punya Shell, sehingga `npm run seed:admin` tidak bisa dijalankan di server | Script dijalankan dari komputer lokal dengan `MONGODB_URI` menunjuk ke Atlas; IP komputer ikut didaftarkan di Network Access |
 | Refresh di route selain `/` menghasilkan 404 di Vercel | Ditambahkan rewrite SPA pada `vercel.json` |
 | Error CORS setelah frontend dideploy | `CLIENT_URLS` di Render diisi URL Vercel yang sebenarnya |
 | Refresh di `/admin` sempat memantul ke `/login` | Status auth diubah menjadi tiga nilai, `ProtectedRoute` menunggu status `loading` selesai |
