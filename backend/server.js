@@ -11,6 +11,13 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+// Render and Vercel put a reverse proxy in front of the app, so the socket
+// address is the proxy's, not the visitor's. Trusting one hop makes
+// `req.ip` read the first entry of X-Forwarded-For, which is what the rate
+// limiter keys on -- without it every request looks like one client and a
+// single attacker would exhaust the limit for everybody.
+app.set("trust proxy", 1);
+
 const allowedOrigins = (process.env.CLIENT_URLS || "")
   .split(",")
   .map((value) => value.trim())
