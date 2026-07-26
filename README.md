@@ -41,6 +41,19 @@ Alasannya: repository ini publik, sementara aplikasinya sudah berjalan dan dapat
 
 Untuk menjalankan versi sendiri lengkap dengan akun admin, ikuti bagian [Cara Menjalankan](#cara-menjalankan) di bawah.
 
+## Dokumen Perancangan
+
+Sebelum menulis kode, pengerjaan TP2 dimulai dari dua dokumen yang keduanya ikut disimpan di repository ini.
+
+| Dokumen | Isi |
+| --- | --- |
+| [`docs/superpowers/specs/2026-07-26-tp2-auth-deployment-monitoring-design.md`](docs/superpowers/specs/2026-07-26-tp2-auth-deployment-monitoring-design.md) | Hasil brainstorming: cakupan pekerjaan, keputusan desain beserta alasannya, arsitektur, kontrak API, dan penanganan error |
+| [`docs/superpowers/plans/2026-07-26-tp2-auth-deployment-monitoring.md`](docs/superpowers/plans/2026-07-26-tp2-auth-deployment-monitoring.md) | Rencana implementasi: 13 task, masing-masing dengan langkah verifikasi dan commit tersendiri |
+
+Dokumen desain memuat alasan di balik pilihan yang diambil, misalnya mengapa memakai `bcryptjs` dan bukan `bcrypt`, mengapa status autentikasi di frontend memakai tiga nilai dan bukan boolean, serta mengapa registrasi tidak boleh menghasilkan role `admin`. Alasan-alasan itu kemudian dirangkum ulang pada `docs/TP2_Dokumentasi.md`.
+
+Kedua dokumen disusun dengan bantuan AI sebagai alat bantu perancangan, lalu ditinjau dan disetujui sebelum implementasi dijalankan. Keduanya sengaja tidak dihapus agar proses pengerjaannya bisa ditelusuri.
+
 ## Halaman
 
 ### Publik (toko)
