@@ -1,9 +1,24 @@
+<!--
+  Berkas ini adalah TEMPLATE dan ikut ter-commit ke repository publik.
+
+  Nilai bertanda {{...}} sengaja tidak diisi di sini. Nilai aslinya (nama, NIM,
+  dan kredensial akun demo) disimpan pada `docs/identitas.local.json` yang
+  masuk .gitignore, lalu disisipkan saat PDF dibuat lewat `npm run docs:pdf`.
+
+  Alasannya: repository ini publik sementara aplikasinya sudah berjalan dan
+  bisa diakses siapa saja. Menuliskan kredensial admin di berkas yang
+  ter-commit sama saja dengan mengumumkannya. PDF hasil build tidak ikut
+  ter-commit, dan itulah yang dikumpulkan ke dosen.
+-->
+
 # Dokumentasi TP2 — Toko Arnol
 
-**Nama:** Andreas Arnol
-**NIM:** 2802631564
-**Mata Kuliah:** Specialized Platform Development
-**Tugas:** Tugas Personal Lab ke-2, Week 8
+| | |
+| --- | --- |
+| **Nama** | {{NAMA}} |
+| **NIM** | {{NIM}} |
+| **Mata Kuliah** | Specialized Platform Development |
+| **Tugas** | Tugas Personal Lab ke-2, Week 8 |
 
 ---
 
@@ -21,7 +36,7 @@ Akun demo untuk penilaian:
 
 | Role | Email | Password |
 | --- | --- | --- |
-| Admin | demo@andreasarnol.com | 882cbad6e7be974a68a80d1e4ef74f7d |
+| Admin | {{ADMIN_EMAIL}} | {{ADMIN_PASSWORD}} |
 
 Akun dengan role `user` bisa dibuat sendiri lewat halaman Daftar.
 
@@ -216,9 +231,21 @@ Daftar IP keluar Render dapat berubah. Kalau suatu saat koneksi ditolak padahal 
 > «SCREENSHOT: daftar Environment Variables di Render»
 > «SCREENSHOT: dashboard Vercel, deployment berstatus Ready»
 > «SCREENSHOT: Atlas, koleksi `users` dan `products` terisi»
-> «SCREENSHOT: aplikasi terbuka di URL publik Vercel»
-> «SCREENSHOT: membuka `/products/:id` langsung lalu refresh, tetap tampil (bukti rewrite SPA)»
-> «SCREENSHOT: output `./smoke-test.sh <URL Render>` memperlihatkan Passed: 7 Failed: 0»
+**Aplikasi berjalan di URL publik**
+
+![Aplikasi di URL publik](screenshots/09-aplikasi-di-url-publik.png)
+
+**Bukti rewrite SPA**
+
+Halaman detail produk dibuka langsung lewat address bar, bukan lewat tautan dari halaman lain. Tanpa rewrite pada `vercel.json`, permintaan seperti ini dijawab 404 oleh Vercel sebelum React sempat dimuat.
+
+![Bukti rewrite SPA](screenshots/10-bukti-spa-rewrite.png)
+
+**Pengujian terhadap API production**
+
+`smoke-test.sh` dijalankan terhadap URL Render yang sudah dideploy. Ketujuh pemeriksaan lolos, mencakup penolakan tulis tanpa token (401), penolakan tulis oleh pengguna biasa (403), dan keberhasilan tulis oleh admin (201).
+
+![Hasil smoke test terhadap production](screenshots/11-smoke-test-production.png)
 
 ---
 
