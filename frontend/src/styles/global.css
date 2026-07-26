@@ -922,9 +922,20 @@ textarea:focus {
   padding: 32px 0 48px;
 }
 
+/* .section-header is a flex row (title left, action right) for the admin
+   pages. The auth pages stack three elements inside it instead, so the
+   direction has to be flipped or eyebrow/heading/lead spread across a row. */
 .auth-shell .section-header {
+  align-items: center;
+  flex-direction: column;
+  gap: 4px;
   margin-bottom: 20px;
   text-align: center;
+}
+
+.auth-shell .section-header .lead {
+  margin: 0;
+  max-width: 34ch;
 }
 
 .auth-switch {

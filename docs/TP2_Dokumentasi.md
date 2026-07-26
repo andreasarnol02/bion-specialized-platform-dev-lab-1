@@ -94,13 +94,41 @@ Proteksi di frontend hanya untuk kenyamanan. Kontrol yang sebenarnya ada di back
 
 ### 3.4 Bukti
 
-> «SCREENSHOT: halaman Daftar (`/register`)»
-> «SCREENSHOT: halaman Masuk (`/login`)»
-> «SCREENSHOT: DevTools → Application → Local Storage, memperlihatkan key `toko_arnol_token`»
-> «SCREENSHOT: membuka `/admin` tanpa login, diarahkan ke `/login`»
-> «SCREENSHOT: navbar setelah masuk sebagai admin, memperlihatkan menu Admin dan tombol Keluar»
-> «SCREENSHOT: navbar setelah masuk sebagai pengguna biasa, menu Admin tidak muncul»
-> «SCREENSHOT: koleksi `users` di Atlas, memperlihatkan password tersimpan sebagai hash»
+**Halaman Daftar**
+
+![Halaman Daftar](screenshots/01-halaman-register.png)
+
+**Halaman Masuk**
+
+![Halaman Masuk](screenshots/02-halaman-login.png)
+
+**Proteksi route: membuka `/admin` tanpa login**
+
+![Proteksi route admin](screenshots/03-proteksi-route-admin.png)
+
+**Navbar, pengunjung belum masuk** — hanya Beranda, Produk, Masuk, dan Daftar.
+
+![Navbar tamu](screenshots/04-navbar-tamu.png)
+
+**Navbar, masuk sebagai pengguna biasa** — muncul sapaan dan tombol Keluar, menu Admin tidak ada.
+
+![Navbar pengguna biasa](screenshots/05-navbar-pengguna.png)
+
+**Navbar, masuk sebagai admin** — menu Admin muncul.
+
+![Navbar admin](screenshots/06-navbar-admin.png)
+
+**Halaman Kelola Produk, hanya bisa dibuka admin**
+
+![Halaman admin](screenshots/07-halaman-admin.png)
+
+**Token JWT di `localStorage`**
+
+![Token di localStorage](screenshots/08-token-localstorage.png)
+
+Payload token hanya memuat `id` dan `role`; tidak ada password maupun email di dalamnya. Token pada gambar di atas ditandatangani dengan `JWT_SECRET` lokal untuk keperluan pengembangan, berbeda dengan secret yang dipakai di production.
+
+> «SCREENSHOT: koleksi `users` di Atlas, memperlihatkan password tersimpan sebagai hash bcrypt»
 
 ---
 
@@ -255,11 +283,35 @@ Konsekuensinya perlu disadari: pengunjung yang berbagi satu IP publik — misaln
 
 `POST /api/auth/register` selalu menetapkan `role: "user"` sebagai nilai literal dan mengabaikan field `role` pada request body. Karena aplikasi dapat diakses publik, endpoint yang bisa memberi hak admin sendiri akan memungkinkan siapa pun menghapus seluruh katalog.
 
-### 6.6 Risiko yang diterima dan tidak diperbaiki
+### 6.6 Audit dependency
+
+`npm audit` dijalankan pada kedua paket.
+
+| Paket | Sebelum | Sesudah `npm audit fix` |
+| --- | --- | --- |
+| backend | 1 high, 1 low | 0 |
+| frontend | 3 high | 2 high |
+
+Dua temuan yang tersisa di frontend berasal dari satu advisory yang sama, yaitu *React Router: RSC Mode CSRF Bypass*. Perbaikannya menuntut react-router versi 8.3.0, sedangkan proyek ini memakai 7.18.1 — sebuah lompatan versi mayor yang berpotensi merusak seluruh routing.
+
+Advisory tersebut ditelaah lebih dulu sebelum diputuskan, dan hasilnya kerentanan itu tidak dapat dicapai pada aplikasi ini:
+
+| Yang diperiksa | Hasil |
+| --- | --- |
+| Impor `react-router/rsc` | tidak ada |
+| `loader` atau `action` pada route | tidak ada |
+| `createBrowserRouter` / `RouterProvider` | tidak ada |
+| File konfigurasi framework mode | tidak ada |
+
+Aplikasi ini murni SPA sisi klien dengan `BrowserRouter` dan `Routes`, sehingga tidak ada RSC mode yang bisa dilewati maupun server action yang bisa dieksekusi. Menjalankan `npm audit fix --force` hanya akan memaksa upgrade mayor yang berisiko merusak routing yang sudah diuji, demi menutup celah yang jalur kodenya tidak pernah dipakai.
+
+Keputusannya: temuan ini dicatat sebagai tidak berlaku, bukan diabaikan. Upgrade ke react-router 8 dijadwalkan terpisah dari pengerjaan tugas ini agar bisa diuji ulang dengan benar.
+
+### 6.7 Risiko yang diterima dan tidak diperbaiki
 
 `POST /api/auth/register` menjawab `"Email sudah terdaftar"` ketika email sudah dipakai. Respons ini memang membocorkan email mana yang punya akun. Menutupnya berarti selalu menjawab berhasil lalu mengirim email verifikasi, dan alur email berada di luar cakupan tugas ini. Risiko ini dicatat dan diterima, bukan diabaikan.
 
-### 6.7 Penyimpanan token
+### 6.8 Penyimpanan token
 
 Soal mensyaratkan token disimpan di `localStorage`, dan itu yang diterapkan. Perlu dicatat bahwa cookie `httpOnly` lebih aman karena isinya tidak dapat dibaca JavaScript sehingga lebih tahan terhadap serangan XSS. Sebagai gantinya, cookie membutuhkan penanganan `SameSite` dan CORS yang lebih ketat karena browser mengirimkannya otomatis.
 
