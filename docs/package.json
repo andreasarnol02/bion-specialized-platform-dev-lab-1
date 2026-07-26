@@ -1,0 +1,11 @@
+{
+  "name": "toko-arnol-docs",
+  "private": true,
+  "description": "Build PDF dokumentasi TP2",
+  "scripts": {
+    "pdf": "node build-pdf.js"
+  },
+  "dependencies": {
+    "marked": "^12.0.0"
+  }
+}
