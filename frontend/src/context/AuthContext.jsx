@@ -17,6 +17,7 @@ import {
   login as loginRequest,
   register as registerRequest,
 } from "../api/auth";
+import { trackEvent } from "../utils/analytics";
 
 const AuthContext = createContext(null);
 
@@ -74,6 +75,7 @@ export function AuthProvider({ children }) {
     setStoredToken(data.token);
     setUser(data.user);
     setStatus("authenticated");
+    trackEvent("login", { method: "password" });
     return data.user;
   }, []);
 
@@ -82,6 +84,7 @@ export function AuthProvider({ children }) {
     setStoredToken(data.token);
     setUser(data.user);
     setStatus("authenticated");
+    trackEvent("sign_up", { method: "password" });
     return data.user;
   }, []);
 
@@ -89,6 +92,7 @@ export function AuthProvider({ children }) {
     clearStoredToken();
     setUser(null);
     setStatus("guest");
+    trackEvent("logout");
   }, []);
 
   const value = useMemo(

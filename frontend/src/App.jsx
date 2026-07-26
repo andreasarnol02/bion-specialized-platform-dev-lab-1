@@ -11,8 +11,11 @@ import Login from "./pages/Login";
 import ProductDetail from "./pages/ProductDetail";
 import ProductList from "./pages/ProductList";
 import Register from "./pages/Register";
+import useAnalytics from "./hooks/useAnalytics";
 
 function App() {
+  useAnalytics();
+
   return (
     <>
       <Navbar />

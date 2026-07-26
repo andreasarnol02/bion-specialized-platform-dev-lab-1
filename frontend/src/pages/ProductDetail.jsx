@@ -5,6 +5,7 @@ import { getProductById } from "../api/products";
 import ErrorMessage from "../components/ErrorMessage";
 import Loading from "../components/Loading";
 import StockBadge from "../components/StockBadge";
+import { trackEvent } from "../utils/analytics";
 import { formatCurrency } from "../utils/format";
 
 const FALLBACK_IMAGE =
@@ -21,6 +22,15 @@ function ProductDetail() {
       try {
         const data = await getProductById(id);
         setProduct(data);
+        // Use `data`, not `product`: setProduct schedules an update rather
+        // than assigning, so `product` is still null on this render.
+        trackEvent("view_item", {
+          item_id: data._id,
+          item_name: data.name,
+          item_category: data.category,
+          value: data.price,
+          currency: "IDR",
+        });
       } catch (err) {
         setError(err.message);
       } finally {
