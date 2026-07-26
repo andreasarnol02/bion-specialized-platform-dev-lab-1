@@ -94,7 +94,17 @@ Endpoint baca tetap terbuka agar toko bisa dilihat pengunjung. Hanya operasi tul
 
 Proteksi di frontend hanya untuk kenyamanan. Kontrol yang sebenarnya ada di backend: menghapus `ProtectedRoute` tidak memberi akses apa pun karena server tetap menolak.
 
-### 3.4 Bukti
+### 3.4 Mengapa role `user` belum punya fitur khusus
+
+Saat ini pengguna dengan role `user` bisa melakukan hal yang sama dengan pengunjung yang belum masuk, yaitu melihat katalog dan membuka detail produk. Perbedaannya hanya pada tampilan navbar.
+
+Ini disengaja. Soal TP2 meminta tiga hal pada bagian LO3, yaitu halaman Login, halaman Registrasi, dan proteksi route. Keluaran yang diminta juga berbunyi "aplikasi toko online dengan fitur login & proteksi route". Fitur pelanggan seperti keranjang belanja, checkout, pesanan, dan pembayaran tidak disebut sama sekali, baik pada soal TP1 maupun TP2, sehingga tidak dikerjakan.
+
+Yang dibangun di sini adalah lapisan identitasnya: siapa pengguna ini, apakah dia berhak, dan bagaimana haknya diperiksa di setiap permintaan. Urutan seperti ini juga dipakai pada pengembangan sungguhan — lapisan autentikasi dan otorisasi dibangun lebih dulu, baru fitur yang bergantung padanya. Ketika nanti keranjang belanja ditambahkan, `req.user` sudah tersedia di setiap endpoint yang dilindungi dan tidak ada yang perlu dirombak.
+
+Role `admin` sengaja dipisahkan dari `user` justru karena alasan ini. Kalau semua akun yang terdaftar boleh mengubah katalog, aplikasi yang sudah bisa diakses publik akan membiarkan siapa pun menghapus seluruh produk hanya dengan mendaftar.
+
+### 3.5 Bukti
 
 **Halaman Daftar**
 
