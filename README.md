@@ -14,8 +14,8 @@ Bagian depan situs berfungsi seperti toko online pada umumnya: pengunjung dapat 
 
 | Bagian | Link |
 | --- | --- |
-| Frontend (Vercel) | _isi setelah deploy_ |
-| Backend (Render) | _isi setelah deploy_ |
+| Frontend (Vercel) | https://toko-online.andreasarnol.com |
+| Backend (Render) | https://api-toko-online.andreasarnol.com |
 
 ## Halaman
 
@@ -269,7 +269,18 @@ TP1/
 
 Backend ke Render, frontend ke Vercel, database ke MongoDB Atlas. Ketiganya memakai paket gratis.
 
-Urutannya penting karena kedua layanan saling merujuk. Ikuti dari atas ke bawah.
+Alamat yang dipakai:
+
+| Bagian | Domain | Layanan |
+| --- | --- | --- |
+| Frontend | `toko-online.andreasarnol.com` | Vercel |
+| Backend | `api-toko-online.andreasarnol.com` | Render |
+
+Karena kedua domain sudah ditentukan sejak awal, nilai `CLIENT_URLS` dan `VITE_API_URL` bisa langsung diisi benar pada deploy pertama. Tanpa custom domain, keduanya saling menunggu: `CLIENT_URLS` butuh URL Vercel sementara `VITE_API_URL` butuh URL Render, padahal belum ada yang jadi.
+
+URL bawaan `<proyek>.vercel.app` tetap dimasukkan ke `CLIENT_URLS` sebagai cadangan, supaya aplikasi tetap berfungsi kalau DNS belum menyebar saat pengumpulan.
+
+Ikuti langkah berikut dari atas ke bawah.
 
 ### 1. MongoDB Atlas
 
@@ -301,14 +312,38 @@ Jika ada `.env` yang muncul, hapus dengan `git rm --cached` **dan ganti semua kr
 
 1. <https://dashboard.render.com> → New → Blueprint → pilih repository ini. Render membaca `render.yaml` di root.
 2. Isi nilai yang diminta: `MONGODB_URI`, `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`.
-3. `CLIENT_URLS` diisi `http://localhost:5173` dulu. URL Vercel belum ada.
+3. Isi `CLIENT_URLS` sekaligus, dipisah koma tanpa spasi:
+
+   ```txt
+   https://toko-online.andreasarnol.com,https://toko-arnol.vercel.app,http://localhost:5173
+   ```
+
+   Ganti `toko-arnol.vercel.app` dengan nama proyek Vercel yang akan dipakai di langkah 6.
 4. Deploy, lalu buka URL service-nya. Seharusnya muncul `{"success":true,"message":"API Toko Arnol berjalan"}`.
 
-Catat URL-nya, bentuknya `https://toko-arnol-api.onrender.com`.
+Catat URL bawaannya, bentuknya `https://toko-arnol-api.onrender.com`.
 
 `JWT_SECRET` tidak perlu diisi: `render.yaml` memakai `generateValue: true` sehingga Render membuat secret acak sendiri.
 
-### 4. Buat akun admin di database production
+### 4. Pasang domain backend di Render
+
+Render → service → **Settings** → **Custom Domains** → Add Custom Domain:
+
+```txt
+api-toko-online.andreasarnol.com
+```
+
+Render menampilkan target CNAME. Di Cloudflare, tambahkan:
+
+| Type | Name | Content | Proxy |
+| --- | --- | --- | --- |
+| CNAME | `api-toko-online` | nilai dari Render | **DNS only** (awan abu-abu) |
+
+Proxy harus dimatikan. Dengan awan oranye, Cloudflare menjawab permintaan validasi ACME dari edge-nya sendiri sehingga Render tidak pernah menerimanya dan sertifikat gagal terbit.
+
+Tunggu sampai status di Render berubah menjadi terverifikasi, lalu buka `https://api-toko-online.andreasarnol.com` untuk memastikan responsnya sama.
+
+### 5. Buat akun admin di database production
 
 Render dashboard → service → tab **Shell**:
 
@@ -318,44 +353,55 @@ npm run seed:admin
 
 Jika service sedang tidur, buka dulu URL-nya supaya bangun.
 
-### 5. Deploy frontend ke Vercel
+### 6. Deploy frontend ke Vercel
 
 1. <https://vercel.com/new> → import repository yang sama.
 2. **Root Directory** diisi `frontend`.
 3. Environment Variables:
-   - `VITE_API_URL` = URL Render, **tanpa garis miring di akhir**
-   - `VITE_GA_MEASUREMENT_ID` = ID GA4 (`G-XXXXXXXXXX`)
-4. Deploy, catat URL-nya.
 
-Garis miring di akhir `VITE_API_URL` menghasilkan path seperti `https://api.onrender.com//api/products` yang berujung 404.
+   ```txt
+   VITE_API_URL=https://api-toko-online.andreasarnol.com
+   VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+   ```
 
-### 6. Kembalikan URL Vercel ke Render
+   Tanpa garis miring di akhir `VITE_API_URL`. Garis miring menghasilkan path seperti `https://api-toko-online.andreasarnol.com//api/products` yang berujung 404, karena `apiFetch` menyambung string apa adanya.
+4. Deploy, catat URL bawaannya.
 
-Render → Environment → ubah `CLIENT_URLS`:
+Kalau nama proyek Vercel ternyata berbeda dari tebakan di langkah 3, perbarui `CLIENT_URLS` di Render agar cocok.
+
+### 7. Pasang domain frontend di Vercel
+
+Vercel → project → **Settings** → **Domains** → Add:
 
 ```txt
-https://toko-arnol.vercel.app,http://localhost:5173
+toko-online.andreasarnol.com
 ```
 
-Simpan, Render otomatis deploy ulang.
+Di Cloudflare, tambahkan record sesuai nilai yang ditampilkan Vercel:
 
-**Langkah ini yang paling sering terlewat.** Gejalanya error CORS di console browser padahal API menjawab normal lewat curl. Frontend-nya tidak bermasalah; backend hanya belum mengenali origin tersebut.
+| Type | Name | Content | Proxy |
+| --- | --- | --- | --- |
+| CNAME | `toko-online` | nilai dari Vercel | **DNS only** (awan abu-abu) |
 
-### 7. Atur data stream GA4
+Sama seperti Render, proxy harus dimatikan. Vercel juga tidak menyarankan reverse proxy di depannya: dengan mode SSL "Flexible", Cloudflare menghubungi Vercel lewat HTTP, Vercel mengalihkan ke HTTPS, lalu Cloudflare mengulanginya sehingga muncul `ERR_TOO_MANY_REDIRECTS`.
 
-GA4 → Admin → Data Streams → ubah URL stream ke domain Vercel, atau tambahkan stream baru untuk domain itu. Stream yang hanya diatur untuk `localhost` tidak merekam trafik production.
+Karena `CLIENT_URLS` sudah memuat `https://toko-online.andreasarnol.com` sejak langkah 3, tidak ada yang perlu diubah lagi di Render.
 
-### 8. Verifikasi
+### 8. Atur data stream GA4
+
+GA4 → Admin → Data Streams → ubah URL stream menjadi `https://toko-online.andreasarnol.com`, atau tambahkan stream baru untuk domain itu. Stream yang hanya diatur untuk `localhost` tidak merekam trafik production.
+
+### 9. Verifikasi
 
 ```bash
 cd backend
 ADMIN_EMAIL=email-admin-anda ADMIN_PASSWORD=password-anda \
-  ./smoke-test.sh https://toko-arnol-api.onrender.com
+  ./smoke-test.sh https://api-toko-online.andreasarnol.com
 ```
 
 Harus muncul `Passed: 7   Failed: 0`. Permintaan pertama bisa memakan waktu sekitar 50 detik karena instance gratis Render tidur setelah kurang lebih 15 menit tidak aktif.
 
-Lalu lewat browser di URL Vercel:
+Lalu buka `https://toko-online.andreasarnol.com` di browser:
 
 | Pemeriksaan | Harapan |
 | --- | --- |
@@ -365,3 +411,13 @@ Lalu lewat browser di URL Vercel:
 | Login sebagai admin | Masuk ke `/admin`, bisa menambah produk |
 | Console browser | Tidak ada error CORS |
 | GA4 Realtime | Kunjungan Anda muncul |
+| Gembok HTTPS di address bar | Sertifikat terbit untuk kedua domain |
+
+Periksa juga DNS-nya sudah menyebar:
+
+```bash
+dig +short toko-online.andreasarnol.com
+dig +short api-toko-online.andreasarnol.com
+```
+
+Keduanya harus mengembalikan target CNAME dari Vercel dan Render, bukan kosong.
