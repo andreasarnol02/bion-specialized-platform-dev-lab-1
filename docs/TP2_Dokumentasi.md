@@ -155,7 +155,11 @@ Role `admin` sengaja dipisahkan dari `user` justru karena alasan ini. Kalau semu
 
 Payload token hanya memuat `id` dan `role`; tidak ada password maupun email di dalamnya. Token pada gambar di atas ditandatangani dengan `JWT_SECRET` lokal untuk keperluan pengembangan, berbeda dengan secret yang dipakai di production.
 
-> «SCREENSHOT: koleksi `users` di Atlas, memperlihatkan password tersimpan sebagai hash bcrypt»
+**Koleksi `users` di MongoDB Atlas**
+
+![Password tersimpan sebagai hash bcrypt](screenshots/12-atlas-users-hash-bcrypt.png)
+
+Tidak ada password dalam bentuk asli di dalam basis data. Awalan `$2b$10$` pada setiap nilai adalah penanda bcrypt: `2b` versi algoritma, `10` jumlah salt round.
 
 ---
 
@@ -230,7 +234,9 @@ Daftar IP keluar Render dapat berubah. Kalau suatu saat koneksi ditolak padahal 
 > «SCREENSHOT: dashboard Render, service berstatus Live»
 > «SCREENSHOT: daftar Environment Variables di Render»
 > «SCREENSHOT: dashboard Vercel, deployment berstatus Ready»
-> «SCREENSHOT: Atlas, koleksi `users` dan `products` terisi»
+**Basis data production terisi**
+
+![Koleksi users dan products di Atlas](screenshots/13-atlas-koleksi-terisi.png)
 **Aplikasi berjalan di URL publik**
 
 ![Aplikasi di URL publik](screenshots/09-aplikasi-di-url-publik.png)
