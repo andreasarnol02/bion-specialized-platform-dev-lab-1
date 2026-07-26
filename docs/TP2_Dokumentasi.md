@@ -231,9 +231,26 @@ Daftar IP keluar Render dapat berubah. Kalau suatu saat koneksi ditolak padahal 
 
 ### 4.5 Bukti
 
-> «SCREENSHOT: dashboard Render, service berstatus Live»
+**Render — service berstatus Live**
+
+![Render service Live](screenshots/14-render-service-live.png)
+
+Deploy dipicu dari branch `main`. Domain `api-toko-online.andreasarnol.com` sudah terpasang dan terverifikasi. Peringatan bahwa instance gratis tidur setelah tidak aktif juga terlihat pada halaman ini.
+
+**Vercel — deployment berstatus Ready**
+
+![Vercel deployment Ready](screenshots/15-vercel-deployment-ready.png)
+
+Domain `toko-online.andreasarnol.com` terpasang, sumbernya branch `main`, dan pratinjau halaman depan menampilkan katalog yang datang dari API di Render.
+
+**MongoDB Atlas — cluster berjalan**
+
+![Cluster Atlas](screenshots/16-atlas-cluster.png)
+
+Cluster `BION-PLATFORM-DEV` memakai paket gratis M0 di region AWS Singapore, region yang sama dengan lokasi pengguna sehingga jarak tempuh permintaan lebih pendek.
+
 > «SCREENSHOT: daftar Environment Variables di Render»
-> «SCREENSHOT: dashboard Vercel, deployment berstatus Ready»
+
 **Basis data production terisi**
 
 ![Koleksi users dan products di Atlas](screenshots/13-atlas-koleksi-terisi.png)
@@ -295,8 +312,13 @@ Tidak ada event yang membawa nama, email, atau token. Ketentuan GA4 melarang dat
 
 ### 5.4 Bukti
 
-> «SCREENSHOT: GA4 Realtime saat aplikasi dibuka»
+**GA4 Realtime saat aplikasi dibuka**
+
+![GA4 Realtime](screenshots/17-ga4-realtime.png)
+
+Properti `Toko Arnol` merekam kunjungan yang sedang berlangsung. Panel "Views by Page title and screen name" memperlihatkan 49 tampilan halaman, jauh lebih banyak daripada jumlah pengguna aktif. Selisih itu memang yang diharapkan pada aplikasi satu halaman: setiap perpindahan route ikut terhitung karena `useAnalytics` mengirim `page_view` secara manual. Tanpa itu, satu sesi hanya akan tercatat satu kali di `/`.
 > «SCREENSHOT: GA4 laporan Events memperlihatkan `login`, `sign_up`, `view_item`»
+
 > «SCREENSHOT: GA4 laporan Pages and screens memperlihatkan beberapa path berbeda»
 
 ---
