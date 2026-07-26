@@ -1,7 +1,7 @@
 # Dokumentasi TP2 — Toko Arnol
 
-**Nama:** «isi nama»
-**NIM:** «isi NIM»
+**Nama:** Andreas Arnol
+**NIM:** 2802631564
 **Mata Kuliah:** Specialized Platform Development
 **Tugas:** Tugas Personal Lab ke-2, Week 8
 
@@ -21,7 +21,7 @@ Akun demo untuk penilaian:
 
 | Role | Email | Password |
 | --- | --- | --- |
-| Admin | «isi» | «isi» |
+| Admin | demo@andreasarnol.com | 882cbad6e7be974a68a80d1e4ef74f7d |
 
 Akun dengan role `user` bisa dibuat sendiri lewat halaman Daftar.
 
